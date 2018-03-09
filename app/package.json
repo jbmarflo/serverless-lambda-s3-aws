@@ -1,0 +1,26 @@
+{
+  "name": "serverless",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jbmarflo/serverless-lambda-sqs-aws.git"
+  },
+  "keywords": [
+    "severless"
+  ],
+  "author": "Joseph Marcilla",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/jbmarflo/serverless-lambda-sqs-aws/issues"
+  },
+  "homepage": "https://github.com/jbmarflo/serverless-lambda-sqs-aws#readme",
+  "dependencies": {
+    "aws-sdk": "^2.207.0",
+    "promise": "^8.0.1"
+  }
+}

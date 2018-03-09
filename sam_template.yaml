@@ -1,0 +1,129 @@
+AWSTemplateFormatVersion: '2019-02-15'
+Transform: AWS::Serverless-2019-02-15
+Description: Function to resize and crop image
+
+Mappings:
+  Environments:
+    dev4a:
+      Region: "eu-west-1"
+      CdeBucket: "dev4a.cde.aptitus.g3c.pe"
+      FunctionVersion: "$LATEST"
+    dev4b:
+      Region: "eu-west-1"
+      CdeBucket: "dev4b.cde.aptitus.g3c.pe"
+      FunctionVersion: "$LATEST"
+    dev4c:
+      Region: "eu-west-1"
+      CdeBucket: "dev4c.cde.aptitus.g3c.pe"
+      FunctionVersion: "$LATEST"
+    pre4b:
+      Region: "us-west-2"
+      CdeBucket: "pre4b.cde.aptitus.g3c.pe"
+      FunctionVersion: "$LATEST"
+    prod:
+      Region: "us-east-1"
+      CdeBucket: "cde.aptitus.g3c.pe"
+      FunctionVersion: "$LATEST"
+
+Parameters:
+  EnvPrefix:
+    Description: "Parametro que define el entorno"
+    Type: String
+    Default: dev
+  SourceFunctionBucket:
+    Description: "Bucket donde se encuentra el codigo lambda"
+    Type: String
+    Default: infraestructura.dev
+  SourceFunctionKey:
+    Description: "Bucket donde se encuentra el codigo lambda"
+    Type: String
+    Default: build/lambda/aptitus/dev4a/imageresize/aptitus-dev4a-imageresize.zip
+
+Resources:
+  FunctionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub "aptitus.${EnvPrefix}.imageresize"
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - 
+            Effect: "Allow"
+            Principal:
+              Service:
+                - "lambda.amazonaws.com"
+            Action: 
+              - "sts:AssumeRole"
+
+  RolePolicy: 
+    Type: "AWS::IAM::Policy"
+    Properties: 
+      PolicyName: !Sub "aptitus.${EnvPrefix}.imageresize"
+      PolicyDocument: 
+        Version: "2012-10-17"
+        Statement:
+          - 
+            Effect: Allow
+            Action:
+              - logs:CreateLogGroup
+              - logs:CreateLogStream
+              - logs:PutLogEvents
+            Resource: arn:aws:logs:*:*:*
+          - 
+            Effect: Allow
+            Action:
+              - "lambda:*"
+            Resource: !GetAtt ImageResizeFunction.Arn
+          - 
+            Action:
+              - s3:DeleteObject*
+              - s3:GetObject*
+              - s3:PutObject*
+            Effect: Allow
+            Resource:
+              - !Join ["",["arn:aws:s3:::",!FindInMap [ Environments, !Ref EnvPrefix, CdeBucket ],"/*"]]
+          - 
+            Action:
+              - s3:DeleteObject*
+              - s3:GetObject*
+            Effect: Allow
+            Resource:
+              - !Sub "arn:aws:s3:::imageresize.${EnvPrefix}.aptitus.pe/*"
+      Roles: 
+        - 
+          !Ref "FunctionRole"
+
+  ImageResizeFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub "aptitus-${EnvPrefix}-imageresize"
+      Description: Redimensiona imagenes tras un evento de s3 o a demanda con invocacion
+      MemorySize: 1216
+      Timeout: 240
+      Handler: index.handler
+      Runtime: nodejs6.10
+      CodeUri: 
+        Bucket: !Ref SourceFunctionBucket
+        Key: !Ref SourceFunctionKey
+      Role: !GetAtt FunctionRole.Arn
+      Environment:
+        Variables:
+          CDE_BUCKET: !FindInMap [ Environments, !Ref EnvPrefix, CdeBucket ]
+      Events:
+        ImageUpload:
+          Type: S3
+          Properties:
+            Bucket: !Ref Bucket
+            Prefix: "original/"
+            Events: s3:ObjectCreated:*
+  PostAlias:
+    Type: AWS::Lambda::Alias
+    Properties:
+      FunctionName: !Ref ImageResizeFunction
+      FunctionVersion: !FindInMap [ Environments, !Ref EnvPrefix, FunctionVersion]
+      Name: !Ref EnvPrefix
+
+  Bucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub "${EnvPrefix}.cde.aptitus.g3c.pe"
