@@ -4,25 +4,9 @@ Description: Function to resize and crop image
 
 Mappings:
   Environments:
-    dev4a:
+    dev:
       Region: "eu-west-1"
-      CdeBucket: "dev4a.cde.aptitus.g3c.pe"
-      FunctionVersion: "$LATEST"
-    dev4b:
-      Region: "eu-west-1"
-      CdeBucket: "dev4b.cde.aptitus.g3c.pe"
-      FunctionVersion: "$LATEST"
-    dev4c:
-      Region: "eu-west-1"
-      CdeBucket: "dev4c.cde.aptitus.g3c.pe"
-      FunctionVersion: "$LATEST"
-    pre4b:
-      Region: "us-west-2"
-      CdeBucket: "pre4b.cde.aptitus.g3c.pe"
-      FunctionVersion: "$LATEST"
-    prod:
-      Region: "us-east-1"
-      CdeBucket: "cde.aptitus.g3c.pe"
+      CdeBucket: "dev4a.cde.bookingmotor.g3c.pe"
       FunctionVersion: "$LATEST"
 
 Parameters:
@@ -37,13 +21,13 @@ Parameters:
   SourceFunctionKey:
     Description: "Bucket donde se encuentra el codigo lambda"
     Type: String
-    Default: build/lambda/aptitus/dev4a/imageresize/aptitus-dev4a-imageresize.zip
+    Default: build/lambda/bookingmotor/dev4a/serverless/bookingmotor-dev4a-serverless.zip
 
 Resources:
   FunctionRole:
     Type: AWS::IAM::Role
     Properties:
-      RoleName: !Sub "aptitus.${EnvPrefix}.imageresize"
+      RoleName: !Sub "bookingmotor.${EnvPrefix}.serverless"
       AssumeRolePolicyDocument:
         Version: "2012-10-17"
         Statement:
@@ -58,7 +42,7 @@ Resources:
   RolePolicy: 
     Type: "AWS::IAM::Policy"
     Properties: 
-      PolicyName: !Sub "aptitus.${EnvPrefix}.imageresize"
+      PolicyName: !Sub "bookingmotor.${EnvPrefix}.serverless"
       PolicyDocument: 
         Version: "2012-10-17"
         Statement:
@@ -73,7 +57,7 @@ Resources:
             Effect: Allow
             Action:
               - "lambda:*"
-            Resource: !GetAtt ImageResizeFunction.Arn
+            Resource: !GetAtt ServerlessFunction.Arn
           - 
             Action:
               - s3:DeleteObject*
@@ -88,15 +72,15 @@ Resources:
               - s3:GetObject*
             Effect: Allow
             Resource:
-              - !Sub "arn:aws:s3:::imageresize.${EnvPrefix}.aptitus.pe/*"
+              - !Sub "arn:aws:s3:::serverless.${EnvPrefix}.bookingmotor.pe/*"
       Roles: 
         - 
           !Ref "FunctionRole"
 
-  ImageResizeFunction:
+  ServerlessFunction:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: !Sub "aptitus-${EnvPrefix}-imageresize"
+      FunctionName: !Sub "bookingmotor-${EnvPrefix}-serverless"
       Description: Redimensiona imagenes tras un evento de s3 o a demanda con invocacion
       MemorySize: 1216
       Timeout: 240
@@ -119,11 +103,11 @@ Resources:
   PostAlias:
     Type: AWS::Lambda::Alias
     Properties:
-      FunctionName: !Ref ImageResizeFunction
+      FunctionName: !Ref ServerlessFunction
       FunctionVersion: !FindInMap [ Environments, !Ref EnvPrefix, FunctionVersion]
       Name: !Ref EnvPrefix
 
   Bucket:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: !Sub "${EnvPrefix}.cde.aptitus.g3c.pe"
+      BucketName: !Sub "${EnvPrefix}.cde.bookingmotor.g3c.pe"

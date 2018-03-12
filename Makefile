@@ -3,7 +3,7 @@
 LAMBDA_FUNCTION_S3_BUCKET = infraestructura.dev
 AWS_REGION_DEPLOY = eu-west-1
 ENV = dev
-FUNCTION = comunication
+FUNCTION = serverless
 PORTAL_NAME = bookingmotor
 HOST_USER = $(USER)
 
