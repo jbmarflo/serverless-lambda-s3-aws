@@ -23,13 +23,13 @@ lambda: ## Generate zip file all from app folder
 	@cd app && zip -rq $(LAMBDA_FUNCTION_NAME).zip .
 	@mv app/$(LAMBDA_FUNCTION_NAME).zip ./
 
-start: ## s
+start: ## Create sqs and s3 bucket
 	./script.sh start
 
 list: ## List all bucket s3
 	./script.sh list
 
-upload-function: ## Upload the lambda function to s3 to deploy later
+upload-function: ## Upload the lambda
 	@make clean
 	@make lambda
 	$(eval LAMBDA_FUNCTION_NAME := $(PORTAL_NAME)-$(ENV)-$(FUNCTION))
@@ -39,11 +39,11 @@ upload-function: ## Upload the lambda function to s3 to deploy later
 	@make clean
 	@echo "Success"
 
-update-stack: ## Display the stack of the lambda function in cloudformation, pay attention the environment and the deployment region. Consider the variable ENV as the deployment environment and LAMBDA_FUNCTION_S3_BUCKET the bucket where the source of lambda function is located
+display-stack: ## Display the stack
 	@make upload-function
 	$(eval LAMBDA_FUNCTION_NAME := $(PORTAL_NAME)-$(ENV)-$(FUNCTION))
 	$(eval LAMBDA_FUNCTION_S3_KEY := build/lambda/$(PORTAL_NAME)/$(ENV)/$(FUNCTION)/$(LAMBDA_FUNCTION_NAME).zip )
-	./script.sh aws cloudformation deploy \
+	aws --endpoint-url=http://localhost:4581 cloudformation deploy \
 	--template-file ./sam_template.yaml \
 	--stack-name $(LAMBDA_FUNCTION_NAME) \
 	--parameter-overrides \
@@ -53,7 +53,7 @@ update-stack: ## Display the stack of the lambda function in cloudformation, pay
 	--capabilities CAPABILITY_NAMED_IAM \
 	--region $(AWS_REGION_DEPLOY)
 
-update-function: ## Actualiza el codigo de la funcion lambda. Considere la variable ENV como entorno de despliegue y LAMBDA_FUNCTION_S3_BUCKET el bucket donde se encuentra la fuente de la funcion lambda
+update-function: ## Update function lambda.
 	@make upload-function
 	$(eval LAMBDA_FUNCTION_NAME := $(PORTAL_NAME)-$(ENV)-$(FUNCTION))
 	$(eval LAMBDA_FUNCTION_S3_KEY := build/lambda/$(PORTAL_NAME)/$(ENV)/$(FUNCTION)/$(LAMBDA_FUNCTION_NAME).zip )

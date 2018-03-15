@@ -1,12 +1,12 @@
 AWSTemplateFormatVersion: '2019-02-15'
 Transform: AWS::Serverless-2019-02-15
-Description: Function to resize and crop image
+Description: Function serverless s3 with lambda
 
 Mappings:
   Environments:
     dev:
-      Region: "eu-west-1"
-      CdeBucket: "dev4a.cde.bookingmotor.g3c.pe"
+      Region: "us-west-2"
+      CdeBucket: "infraestructura.dev"
       FunctionVersion: "$LATEST"
 
 Parameters:
@@ -21,7 +21,7 @@ Parameters:
   SourceFunctionKey:
     Description: "Bucket donde se encuentra el codigo lambda"
     Type: String
-    Default: build/lambda/bookingmotor/dev4a/serverless/bookingmotor-dev4a-serverless.zip
+    Default: build/lambda/bookingmotor/dev/serverless/bookingmotor-dev-serverless.zip
 
 Resources:
   FunctionRole:
@@ -72,7 +72,7 @@ Resources:
               - s3:GetObject*
             Effect: Allow
             Resource:
-              - !Sub "arn:aws:s3:::serverless.${EnvPrefix}.bookingmotor.pe/*"
+              - !Sub "arn:aws:s3:::serverless.${EnvPrefix}.bookingmotor.com/*"
       Roles: 
         - 
           !Ref "FunctionRole"
@@ -86,7 +86,7 @@ Resources:
       Timeout: 240
       Handler: index.handler
       Runtime: nodejs6.10
-      CodeUri: 
+      CodeUri:
         Bucket: !Ref SourceFunctionBucket
         Key: !Ref SourceFunctionKey
       Role: !GetAtt FunctionRole.Arn
@@ -94,11 +94,11 @@ Resources:
         Variables:
           CDE_BUCKET: !FindInMap [ Environments, !Ref EnvPrefix, CdeBucket ]
       Events:
-        ImageUpload:
+        MessageUpload:
           Type: S3
           Properties:
             Bucket: !Ref Bucket
-            Prefix: "original/"
+            Prefix: "messages/"
             Events: s3:ObjectCreated:*
   PostAlias:
     Type: AWS::Lambda::Alias
@@ -110,4 +110,4 @@ Resources:
   Bucket:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: !Sub "${EnvPrefix}.cde.bookingmotor.g3c.pe"
+      BucketName: !Sub "infraestructura.${EnvPrefix}"

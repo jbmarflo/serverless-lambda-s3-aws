@@ -14,6 +14,8 @@ export DEV_GID=$(id -g)
 app_start()
 {
     aws --endpoint-url=http://localhost:4572 s3 mb s3://infraestructura.dev
+    aws --endpoint-url=http://localhost:4576 sqs create-queue --queue-name messages
+
 #    if [[ -z "${AWS_ACCESS_KEY_ID// }" ]]; then
 #        app_save_acces_credential_aws
 #        app_start

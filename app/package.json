@@ -21,6 +21,7 @@
   "homepage": "https://github.com/jbmarflo/serverless-lambda-sqs-aws#readme",
   "dependencies": {
     "aws-sdk": "^2.207.0",
+    "https": "^1.0.0",
     "promise": "^8.0.1"
   }
 }
