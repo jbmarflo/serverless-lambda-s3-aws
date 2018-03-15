@@ -1,5 +1,5 @@
 var Promise = require('promise');
-
+var https = require("https");
 /**
  *
  * @param parameters
@@ -21,9 +21,9 @@ Transform.prototype.generate = function Transform_generate() {
 Transform.prototype.buildMessages = function Transform_buildMessages() {
     return new Promise(function(resolve, reject){
         if (this.threads instanceof Array) {
-            console.log(this.threads);
             this.threads.map(function(thread, index){
                 var msg = this.parameters;
+                var searchId = msg.searchId;
                 msg.filter.threadId = +index;
                 msg.supplier = thread.supplier;
 
@@ -31,9 +31,44 @@ Transform.prototype.buildMessages = function Transform_buildMessages() {
                     msg.filter = Object.assign(msg.filter, thread.filters);
                 }
 
-                this.messages.push(msg);
-            }.bind(this));
+                var timeout_function = function( req ) {
+                    return function( ) {
+                        req.abort( );
+                    };
+                };
+                var timeout = msg.timeout;
+                var data = JSON.stringify(msg);
+                var options = {
+                    host: "hookb.in",
+                    port: 443,
+                    path: "/KlwwGdjD",
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Content-Length": Buffer.byteLength(data)
+                    }
+                };
 
+                var req = https.request(options, function (res) {
+                    var response = "";
+
+                    res.setEncoding("utf8");
+
+                    res.on("data", function (chunk) {
+                        response += chunk;
+                    });
+
+                    res.on("end", function () {
+                        console.log(response);
+                    });
+                });
+                req.write(data);
+                var fn = timeout_function(req);
+                var execTimeout = setTimeout( fn, timeout * 1000 );
+
+                //Put finish service searchId
+                req.end();
+            }.bind(this));
         }
         resolve(this.parameters);
     }.bind(this));
