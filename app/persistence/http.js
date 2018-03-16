@@ -1,5 +1,5 @@
-var https = require("https");
 var Promise = require('promise');
+var request = require('request');
 
 const TIME_TO_SECONDS = 1000;
 
@@ -9,23 +9,16 @@ var requestHttp = {
             req.abort();
         };
     },
-    'request': function(options, data, timeout) {
+    'request': function(options, timeout) {
         return new Promise(function(resolve, reject) {
-            var req = https.request(options, function (res) {
-                var response = "";
-
-                res.setEncoding("utf8");
-
-                res.on("data", function (chunk) {
-                    response += chunk;
-                });
-
+            var req = request(options, function (error, response, body) {
+                if (error) {
+                    console.log('Can\'t process the request with options: ' + JSON.stringify(options));
+                }
             });
-            req.write(data);
-            if (timeout) {
+            if (timeout != null && timeout) {
                 setTimeout( this.timeout(req), timeout * TIME_TO_SECONDS );
             }
-            req.end();
         }.bind(this));
     }
 };
