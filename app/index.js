@@ -24,39 +24,8 @@ exports.handler =  function(event, context, callback) {
     S3.getObject(bucket, key)
         .then(function(data) {
             var parsedData = JSON.parse(data.Body.toString('utf-8'));
-            var objTransform = new Transform(parsedData);
-            objTransform.generate();
-                // .then(function(obj) {
-                //     obj.map(function (message) {
-                //         var timeout = message.timeout;
-                //         var data = JSON.stringify(message);
-                //         var options = {
-                //             host: "hookb.in",
-                //             port: 443,
-                //             path: "/ZjLLxW1D",
-                //             method: "POST",
-                //             headers: {
-                //                 "Content-Type": "application/json",
-                //                 "Content-Length": Buffer.byteLength(data)
-                //             }
-                //         };
-                //         var req = https.request(options, function (res) {
-                //             var response = "";
-                //
-                //             res.setEncoding("utf8");
-                //
-                //             res.on("data", function (chunk) {
-                //                 response += chunk;
-                //             });
-                //
-                //             res.on("end", function () {
-                //                 // console.log(response);
-                //             });
-                //         });
-                //         req.write(data);
-                //         req.end();
-                //     });
-                // });
+            var Process = new Transform(parsedData);
+            Process.run();
         });
 
     callback(null, 'Message processed');

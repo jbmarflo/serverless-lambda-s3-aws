@@ -1,5 +1,5 @@
 var Promise = require('promise');
-var https = require("https");
+var Http = require("../persistence/http");
 /**
  *
  * @param parameters
@@ -10,10 +10,13 @@ function Transform(parameters) {
     this.messages = [];
 }
 
-Transform.prototype.generate = function Transform_generate() {
+Transform.prototype.run = function Transform_run() {
     return new Promise(function(resolve) {
         this.setThreads();
-        this.buildMessages();
+        this.buildMessages()
+            .then(function(searchId){
+                console.log('Delete search by: ' + searchId);
+            });
         resolve(this.messages);
     }.bind(this));
 };
@@ -21,9 +24,8 @@ Transform.prototype.generate = function Transform_generate() {
 Transform.prototype.buildMessages = function Transform_buildMessages() {
     return new Promise(function(resolve, reject){
         if (this.threads instanceof Array) {
-            this.threads.map(function(thread, index){
+            this.threads.map(function(thread, index) {
                 var msg = this.parameters;
-                var searchId = msg.searchId;
                 msg.filter.threadId = +index;
                 msg.supplier = thread.supplier;
 
@@ -31,17 +33,17 @@ Transform.prototype.buildMessages = function Transform_buildMessages() {
                     msg.filter = Object.assign(msg.filter, thread.filters);
                 }
 
-                var timeout_function = function( req ) {
-                    return function( ) {
-                        req.abort( );
-                    };
-                };
+                // var timeout_function = function(req) {
+                //     return function() {
+                //         req.abort();
+                //     };
+                // };
                 var timeout = msg.timeout;
                 var data = JSON.stringify(msg);
                 var options = {
                     host: "hookb.in",
                     port: 443,
-                    path: "/KlwwGdjD",
+                    path: "/KNRRO573",
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
@@ -49,28 +51,31 @@ Transform.prototype.buildMessages = function Transform_buildMessages() {
                     }
                 };
 
-                var req = https.request(options, function (res) {
-                    var response = "";
+                Http.request(options, data, timeout);
+                // var req = https.request(options, function (res) {
+                //     var response = "";
+                //
+                //     res.setEncoding("utf8");
+                //
+                //     res.on("data", function (chunk) {
+                //         response += chunk;
+                //     });
+                //
+                //     res.on("end", function () {
+                //         console.log(response);
+                //     });
+                // });
+                // req.write(data);
+                // var fn = timeout_function(req);
+                //
+                //
+                // var execTimeout = setTimeout( fn, timeout * 1000 );
 
-                    res.setEncoding("utf8");
-
-                    res.on("data", function (chunk) {
-                        response += chunk;
-                    });
-
-                    res.on("end", function () {
-                        console.log(response);
-                    });
-                });
-                req.write(data);
-                var fn = timeout_function(req);
-                var execTimeout = setTimeout( fn, timeout * 1000 );
-
-                //Put finish service searchId
-                req.end();
+                // req.end();
             }.bind(this));
+
+            resolve(this.parameters.searchId);
         }
-        resolve(this.parameters);
     }.bind(this));
 };
 
